@@ -1,5 +1,5 @@
-class APINotAvailableError(Exception):
-    """Ошибка соединения с API."""
+class RequestExceptionError(Exception):
+    """Общее исключение."""
 
     pass
 

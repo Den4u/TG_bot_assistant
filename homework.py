@@ -1,7 +1,8 @@
-import time
-import os
+import json
 import logging
+import os
 import sys
+import time
 from http import HTTPStatus
 
 import telegram
@@ -58,17 +59,17 @@ def get_api_answer(timestamp):
     payload = {'from_date': int(time.time())}
     try:
         homework_status = requests.get(ENDPOINT, HEADERS, payload)
-    except Exception as error:
-        message = (f'Эндпоинт "{ENDPOINT}" недоступен: {error}.')
+    except requests.RequestException as error:
+        message = (f'Ошибка: {error}.')
         logger.error(message)
-        raise exc.APINotAvailableError(message)
+        raise exc.RequestExceptionError(message)
     if homework_status.status_code != HTTPStatus.OK:
         message = (f'Ошибка: "{homework_status.status_code}".')
         logger.error(message)
         raise exc.InvalidHTTPResponseError(message)
     try:
         return homework_status.json()
-    except Exception as error:
+    except json.JSONDecodeError as error:
         message = (f'Ошибка преобразования к формату JSON: {error}.')
         logger.error(message)
         raise exc.JSONDecodeError(message)
@@ -104,8 +105,8 @@ def parse_status(homework):
         message = 'Неизвестный статус.'
         logger.error(message)
         raise ValueError(message)
-    verdict = HOMEWORK_VERDICTS[homework_status]
-    return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+    return (f'Изменился статус проверки работы "{homework_name}". '
+            f'{HOMEWORK_VERDICTS[homework_status]}')
 
 
 def main():
